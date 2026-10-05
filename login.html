@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Banco de los Mariscos — Ingresar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0b1226;
+      --edge: #010a19;              /* color del borde de fondo.png, rellena los lados */
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --dim: #64748b;
+      --red: #e42a43;
+      --red-dark: #c81e36;
+      --avatar: #8a1c26;
+      --danger: #fda4af;
+      --fondo-opacidad: .72;        /* qué tan oscuro se ve el caballito de fondo (0 a 1) */
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--edge);
+      color: var(--text);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Escenario a pantalla completa: fondo + capa azul marino */
+    .stage {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      background: var(--edge);
+      overflow: hidden;
+    }
+    .stage::before {                /* imagen de fondo */
+      content: '';
+      position: absolute; inset: 0;
+      background: url('images/fondo.png') center 60% / cover no-repeat;
+    }
+    .stage::after {                 /* capa que oscurece el fondo */
+      content: '';
+      position: absolute; inset: 0;
+      background: var(--navy);
+      opacity: var(--fondo-opacidad);
+    }
+    .stage.leaving {
+      transform: translateY(-100%);
+      box-shadow: 0 30px 60px rgba(0,0,0,.35);
+      transition: transform .9s cubic-bezier(.76, 0, .24, 1);
+    }
+    .stage.leaving .panel { opacity: 0; transition: opacity .3s ease; }
+    .hidden { display: none; }
+
+    .panel { position: relative; z-index: 1; width: 100%; animation: fade-in .7s ease both; }
+
+    /* ---------- Login ---------- */
+    #login .panel { max-width: 400px; }
+    .logo { display: block; width: 140px; height: auto; margin: 0 auto 28px; }
+    .brand { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 28px; }
+    .user { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--avatar); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700;
+    }
+    .user h1 { font-size: 22px; font-weight: 600; }
+
+    label { display: block; font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 8px; }
+    .field { position: relative; }
+    input {
+      width: 100%;
+      padding: 14px 88px 14px 16px;
+      font: inherit; font-size: 15px; color: #fff;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(148,163,184,.35);
+      border-radius: 10px;
+      outline: none;
+      transition: border-color .2s, background .2s;
+    }
+    input::placeholder { color: var(--dim); }
+    input:focus { border-color: #f0596e; background: rgba(255,255,255,.06); }
+    input.invalid { border-color: var(--danger); }
+    .toggle {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      background: none; border: 0; cursor: pointer;
+      padding: 6px 10px; border-radius: 6px;
+      font: inherit; font-size: 13px; font-weight: 600; color: #e2e8f0;
+    }
+    .toggle:hover { background: rgba(255,255,255,.08); }
+    .error { min-height: 22px; margin-top: 8px; font-size: 12px; color: var(--danger); }
+    .shake { animation: shake .45s ease; }
+
+    .submit {
+      width: 100%; margin-top: 14px; padding: 14px;
+      font: inherit; font-size: 15px; font-weight: 600; color: #fff;
+      background: var(--red); border: 0; border-radius: 10px; cursor: pointer;
+      transition: background .2s;
+    }
+    .submit:hover { background: var(--red-dark); }
+    .toggle:focus-visible, .submit:focus-visible { outline: 2px solid #fda4af; outline-offset: 2px; }
+    .foot { margin-top: 28px; font-size: 12px; color: var(--dim); }
+
+    /* ---------- Carga ---------- */
+    #loading .panel { max-width: 520px; }
+    .kicker { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .amount {
+      font-size: clamp(2.6rem, 9vw, 4.75rem);
+      font-weight: 300; line-height: 1; letter-spacing: -.02em;
+      font-variant-numeric: tabular-nums;
+      color: #fff;
+      margin-bottom: 32px;
+    }
+    .bar { height: 3px; background: rgba(241,245,249,.14); border-radius: 3px; overflow: hidden; margin-bottom: 24px; }
+    .bar span { display: block; height: 100%; width: 0; background: var(--red); }
+    .steps { list-style: none; font-size: 14px; }
+    .steps li {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 8px; color: #475569;
+      transition: color .3s;
+    }
+    .steps li.current { color: #fff; font-weight: 500; }
+    .steps li.done { color: var(--muted); }
+    .dot {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 1px solid #475569;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 10px; color: #fff;
+    }
+    .steps li.done .dot { background: var(--red); border-color: var(--red); }
+
+    @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-9px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(3px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .panel, .shake { animation: none; }
+      .stage.leaving { transition-duration: .01s; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PANTALLA DE LOGIN -->
+  <main class="stage" id="login">
+    <form class="panel" id="loginForm" autocomplete="off">
+      <img class="logo" src="images/logo.png" alt="Logo de El Banco de los Mariscos">
+      <div class="brand">El Banco de los Mariscos</div>
+
+      <div class="user">
+        <div class="avatar">MV</div>
+        <h1>Hola, Manuel</h1>
+      </div>
+
+      <label for="password">Contraseña</label>
+      <div id="fieldWrap">
+        <div class="field">
+          <input id="password" type="password" placeholder="Escribe tu contraseña" autofocus>
+          <button type="button" class="toggle" id="toggle">Mostrar</button>
+        </div>
+      </div>
+      <div class="error" id="error" role="alert"></div>
+
+      <button type="submit" class="submit">Ingresar</button>
+      <p class="foot">Versión de demostración</p>
+    </form>
+  </main>
+
+  <!-- PANTALLA DE CARGA -->
+  <main class="stage hidden" id="loading" role="status" aria-live="polite" aria-label="Cargando el sistema">
+    <div class="panel">
+      <div class="kicker">Neto a pagar en la quincena del 16 al 30 de septiembre</div>
+      <div class="amount" id="amount">₡0</div>
+      <div class="bar"><span id="barFill"></span></div>
+      <ul class="steps" id="steps"></ul>
+    </div>
+  </main>
+
+  <script>
+    // ================== CONFIGURACIÓN ==================
+    const PASSWORD = 'Arenita123';
+    const DESTINO = 'index.html';          // página a la que se entra al terminar
+    const TOTAL_NETO = 21475488;           // neto de la quincena (₡)
+    const PASOS = [
+      'Conectando con El Banco de los Mariscos',
+      'Cargando 50 colaboradores',
+      'Calculando la planilla de la quincena',
+      'Preparando tu panel'
+    ];
+    const DURACION = 3400;                 // milisegundos de la animación
+    // ===================================================
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const $ = (id) => document.getElementById(id);
+
+    const formatColones = (n) => '₡' + Math.round(n).toLocaleString('es-CR');
+
+    /* ----- Login ----- */
+    const input = $('password');
+    const errorBox = $('error');
+
+    $('toggle').addEventListener('click', () => {
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      $('toggle').textContent = show ? 'Ocultar' : 'Mostrar';
+    });
+
+    input.addEventListener('input', () => {
+      errorBox.textContent = '';
+      input.classList.remove('invalid');
+    });
+
+    $('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (input.value === PASSWORD) {
+        iniciarCarga();
+      } else {
+        errorBox.textContent = 'Contraseña incorrecta. Revisa las mayúsculas e inténtalo de nuevo.';
+        input.classList.add('invalid');
+        input.value = '';
+        input.focus();
+        const wrap = $('fieldWrap');
+        wrap.classList.remove('shake');
+        void wrap.offsetWidth;             // reinicia la animación
+        wrap.classList.add('shake');
+      }
+    });
+
+    /* ----- Carga ----- */
+    function iniciarCarga() {
+      $('login').classList.add('hidden');
+      const stage = $('loading');
+      stage.classList.remove('hidden');
+
+      const lista = $('steps');
+      lista.innerHTML = PASOS.map(p => `<li><span class="dot"></span>${p}</li>`).join('');
+      const items = lista.querySelectorAll('li');
+
+      const duracion = reduceMotion ? 500 : DURACION;
+      const inicio = performance.now();
+
+      function tick(ahora) {
+        const p = Math.min((ahora - inicio) / duracion, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        const paso = Math.min(Math.floor(p * PASOS.length), PASOS.length - 1);
+
+        $('amount').textContent = formatColones(TOTAL_NETO * eased);
+        $('barFill').style.width = (p * 100) + '%';
+
+        items.forEach((li, i) => {
+          const hecho = i < paso || p >= 1;
+          li.className = hecho ? 'done' : (i === paso ? 'current' : '');
+          li.firstChild.textContent = hecho ? '✓' : '';
+        });
+
+        if (p < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          setTimeout(() => {
+            stage.classList.add('leaving');          // la cortina sube
+            setTimeout(() => { window.location.href = DESTINO; }, reduceMotion ? 50 : 900);
+          }, reduceMotion ? 0 : 350);
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+  </script>
+</body>
+</html>
